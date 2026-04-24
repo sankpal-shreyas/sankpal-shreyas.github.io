@@ -28,7 +28,7 @@ export const site = {
   },
   resumePath: "/resume.pdf",
   ogImage: "/og.png",
-  baseUrl: "https://shreyas-sankpal.github.io",
+  baseUrl: "https://sankpal-shreyas.github.io",
 } as const;
 
 export type SiteConfig = typeof site;

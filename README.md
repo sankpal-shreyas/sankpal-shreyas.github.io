@@ -1,4 +1,4 @@
-# shreyas-sankpal.github.io
+# sankpal-shreyas.github.io
 
 🚧 **Under Construction** 🚧
 
