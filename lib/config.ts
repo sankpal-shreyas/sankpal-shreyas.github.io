@@ -16,7 +16,7 @@ export const site = {
     latencyMs: 42,
   },
   socials: {
-    github: "https://github.com/Shreyas582",
+    github: "https://github.com/sankpal-shreyas",
     linkedin: "https://linkedin.com/in/shreyas-sankpal",
     email: "ce.shreyas@gmail.com",
   },
