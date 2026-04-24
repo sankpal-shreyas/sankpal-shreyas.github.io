@@ -60,16 +60,21 @@ export function ProjectCard({ project }: { project: Project }) {
             </span>
           ))}
         </div>
-        {project.links?.[0] && (
-          <a
-            href={project.links[0].href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-mono text-xs text-primary hover:glow-text"
-          >
-            {project.links[0].label}
-            <ArrowUpRight className="size-3.5" aria-hidden />
-          </a>
+        {project.links && project.links.length > 0 && (
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {project.links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-mono text-xs text-primary hover:glow-text"
+              >
+                {link.label}
+                <ArrowUpRight className="size-3.5" aria-hidden />
+              </a>
+            ))}
+          </div>
         )}
       </footer>
     </article>
