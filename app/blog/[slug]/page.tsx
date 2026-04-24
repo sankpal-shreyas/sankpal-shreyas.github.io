@@ -2,9 +2,18 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypePrettyCode, {
+  type Options as PrettyOptions,
+} from "rehype-pretty-code";
 import { ArrowLeft } from "lucide-react";
 import { getAllPostSlugs, getPost } from "@/lib/mdx";
 import { mdxComponents } from "@/components/blog/mdxComponents";
+
+const prettyCodeOptions: PrettyOptions = {
+  theme: "github-dark",
+  keepBackground: false,
+  defaultLang: "plaintext",
+};
 
 type Params = { slug: string };
 
@@ -59,7 +68,15 @@ export default async function PostPage({
       </header>
 
       <div className="prose-terminal">
-        <MDXRemote source={post.content} components={mdxComponents} />
+        <MDXRemote
+          source={post.content}
+          components={mdxComponents}
+          options={{
+            mdxOptions: {
+              rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
+            },
+          }}
+        />
       </div>
     </article>
   );

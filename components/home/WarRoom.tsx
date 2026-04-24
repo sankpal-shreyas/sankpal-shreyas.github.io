@@ -3,6 +3,7 @@ import { EducationPanel } from "@/components/home/EducationPanel";
 import { ExperiencePanel } from "@/components/home/ExperiencePanel";
 import { CTFStrip } from "@/components/home/CTFStrip";
 import { AvailabilityPill } from "@/components/home/AvailabilityPill";
+import { RevealStagger, RevealItem } from "@/components/ui/Reveal";
 import { site } from "@/lib/config";
 
 export function WarRoom() {
@@ -29,19 +30,29 @@ export function WarRoom() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-          <div className="flex flex-col gap-6">
-            <PhotoCard />
-            <div className="rounded-md border border-border bg-bg-panel p-4 font-mono text-xs text-text-dim">
-              <p className="mb-2 text-primary">$ cat ~/bio.txt</p>
-              <p className="leading-6">{site.bio}</p>
-            </div>
-          </div>
+          <RevealStagger className="flex flex-col gap-6">
+            <RevealItem>
+              <PhotoCard />
+            </RevealItem>
+            <RevealItem>
+              <div className="rounded-md border border-border bg-bg-panel p-4 font-mono text-xs text-text-dim">
+                <p className="mb-2 text-primary">$ cat ~/bio.txt</p>
+                <p className="leading-6">{site.bio}</p>
+              </div>
+            </RevealItem>
+          </RevealStagger>
 
-          <div className="flex flex-col gap-8">
-            <ExperiencePanel />
-            <EducationPanel />
-            <CTFStrip />
-          </div>
+          <RevealStagger className="flex flex-col gap-8">
+            <RevealItem>
+              <ExperiencePanel />
+            </RevealItem>
+            <RevealItem>
+              <EducationPanel />
+            </RevealItem>
+            <RevealItem>
+              <CTFStrip />
+            </RevealItem>
+          </RevealStagger>
         </div>
       </div>
     </section>

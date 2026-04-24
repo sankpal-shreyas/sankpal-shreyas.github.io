@@ -38,9 +38,12 @@ function latLngToVec3(lat: number, lng: number, radius: number): [number, number
   ];
 }
 
-function buildMeridianGeometry(segments = 48) {
+function buildMeridianGeometry(
+  segments = 48,
+  meridianCount = 24,
+  parallelCount = 12,
+) {
   const positions: number[] = [];
-  const meridianCount = 24;
   for (let m = 0; m < meridianCount; m++) {
     const lng = (m / meridianCount) * 360 - 180;
     for (let i = 0; i < segments; i++) {
@@ -50,7 +53,6 @@ function buildMeridianGeometry(segments = 48) {
       positions.push(...latLngToVec3(lat2, lng, GLOBE_RADIUS));
     }
   }
-  const parallelCount = 12;
   for (let p = 1; p < parallelCount; p++) {
     const lat = (p / parallelCount) * 180 - 90;
     for (let i = 0; i < segments; i++) {
@@ -123,12 +125,50 @@ function AtmosphereMaterial() {
   return <primitive object={material} attach="material" />;
 }
 
-export function Globe() {
+type Quality = "low" | "high";
+
+const PRESETS: Record<Quality, {
+  sphereSegments: number;
+  meridianSegments: number;
+  meridianCount: number;
+  parallelCount: number;
+  starCount: number;
+}> = {
+  low: {
+    sphereSegments: 32,
+    meridianSegments: 28,
+    meridianCount: 16,
+    parallelCount: 8,
+    starCount: 450,
+  },
+  high: {
+    sphereSegments: 64,
+    meridianSegments: 48,
+    meridianCount: 24,
+    parallelCount: 12,
+    starCount: 1200,
+  },
+};
+
+export function Globe({ quality = "high" }: { quality?: Quality } = {}) {
   const rootRef = useRef<Group>(null!);
   const starsRef = useRef<Points>(null!);
 
-  const wireGeometry = useMemo(() => buildMeridianGeometry(), []);
-  const starGeometry = useMemo(() => buildStarfield(), []);
+  const preset = PRESETS[quality];
+
+  const wireGeometry = useMemo(
+    () =>
+      buildMeridianGeometry(
+        preset.meridianSegments,
+        preset.meridianCount,
+        preset.parallelCount,
+      ),
+    [preset],
+  );
+  const starGeometry = useMemo(
+    () => buildStarfield(preset.starCount),
+    [preset.starCount],
+  );
   const cityGeometry = useMemo(() => buildCityPointsGeometry(), []);
 
   const [nycX, nycY, nycZ] = useMemo(
@@ -155,7 +195,7 @@ export function Globe() {
 
       <group ref={rootRef}>
         <mesh>
-          <sphereGeometry args={[GLOBE_RADIUS * 0.995, 64, 64]} />
+          <sphereGeometry args={[GLOBE_RADIUS * 0.995, preset.sphereSegments, preset.sphereSegments]} />
           <meshBasicMaterial color="#061206" />
         </mesh>
 

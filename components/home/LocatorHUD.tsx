@@ -33,7 +33,10 @@ export function LocatorHUD() {
   }, []);
 
   return (
-    <div className="pointer-events-none absolute left-4 top-20 z-10 w-[340px] max-w-[80vw] font-mono text-[11px] leading-6 text-primary/90 sm:left-6">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute left-4 top-20 z-10 w-[340px] max-w-[80vw] font-mono text-[11px] leading-6 text-primary/90 sm:left-6"
+    >
       <div className="mb-2 flex items-center gap-2 border-b border-primary/30 pb-1 uppercase tracking-[0.3em] text-text-dim">
         <span className="size-1.5 animate-pulse rounded-full bg-primary" />
         <span>tactical.locate</span>

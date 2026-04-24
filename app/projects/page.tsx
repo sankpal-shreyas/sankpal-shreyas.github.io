@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { projects } from "@/content/projects";
 import { ProjectCard } from "@/components/projects/ProjectCard";
+import { RevealStagger, RevealItem } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
   title: "projects",
@@ -24,11 +25,13 @@ export default function ProjectsPage() {
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <RevealStagger className="grid gap-6 md:grid-cols-2">
         {projects.map((p) => (
-          <ProjectCard key={p.slug} project={p} />
+          <RevealItem key={p.slug}>
+            <ProjectCard project={p} />
+          </RevealItem>
         ))}
-      </div>
+      </RevealStagger>
     </div>
   );
 }

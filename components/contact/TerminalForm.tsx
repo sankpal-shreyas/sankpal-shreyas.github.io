@@ -153,7 +153,7 @@ export function TerminalForm() {
             name="field"
             type={step === "message" ? "text" : "email"}
             autoComplete="off"
-            autoCapitalize="off"
+            autoCapitalize="none"
             spellCheck={false}
             disabled={inputDisabled}
             placeholder={

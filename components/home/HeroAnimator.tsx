@@ -38,7 +38,7 @@ export function HeroAnimator({ children }: { children: React.ReactNode }) {
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: "bottom top",
+          end: "bottom bottom",
           scrub: 0.6,
           invalidateOnRefresh: true,
         },
@@ -46,22 +46,22 @@ export function HeroAnimator({ children }: { children: React.ReactNode }) {
 
       if (tl.scrollTrigger) triggers.push(tl.scrollTrigger);
 
-      if (kicker) tl.to(kicker, { opacity: 0, y: -20 }, 0);
+      if (kicker) tl.to(kicker, { opacity: 0, y: -24, ease: "power2.in" }, 0);
       if (name)
         tl.to(
           name,
           {
-            scale: 0.35,
-            y: -160,
-            letterSpacing: "0.1em",
+            scale: 0.22,
+            y: () => -window.innerHeight * 0.42,
+            letterSpacing: "0.18em",
             ease: "power2.inOut",
           },
           0,
         );
-      if (subtitle) tl.to(subtitle, { opacity: 0, y: -20 }, 0);
-      if (hud) tl.to(hud, { opacity: 0, x: -40 }, 0);
-      if (scroll) tl.to(scroll, { opacity: 0, y: 20 }, 0);
-      if (canvas) tl.to(canvas, { scale: 1.2, opacity: 0.35 }, 0);
+      if (subtitle) tl.to(subtitle, { opacity: 0, y: -24, ease: "power2.in" }, 0);
+      if (hud) tl.to(hud, { opacity: 0, x: -60, ease: "power2.in" }, 0);
+      if (scroll) tl.to(scroll, { opacity: 0, y: 30, ease: "power2.in" }, 0);
+      if (canvas) tl.to(canvas, { scale: 1.4, opacity: 0.25, ease: "power1.inOut" }, 0);
     }, container);
 
     return () => {

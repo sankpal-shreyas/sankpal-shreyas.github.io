@@ -6,6 +6,7 @@ export function HeroName() {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center text-center">
       <p
+        aria-hidden
         data-hero-kicker
         className="mb-4 font-mono text-[11px] uppercase tracking-[0.5em] text-primary glow-text"
       >

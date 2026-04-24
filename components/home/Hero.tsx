@@ -31,25 +31,25 @@ export function Hero() {
 
   return (
     <HeroAnimator>
-      <section
-        id="hero"
-        className="relative h-[100svh] w-full overflow-hidden bg-bg"
-      >
-        <div className="absolute inset-0" data-hero-canvas>
-          {GlobeScene ? <GlobeScene /> : <HeroFallback />}
-        </div>
-        <div data-hero-hud>
-          <LocatorHUD />
-        </div>
-        <HeroName />
-        <div
-          data-hero-scroll
-          className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.4em] text-text-dim"
-        >
-          <span className="opacity-60">scroll</span>
-          <span className="h-6 w-px animate-pulse bg-primary" />
-        </div>
-      </section>
+      <div id="hero" className="relative h-[200svh] w-full">
+        <section className="sticky top-0 h-[100svh] w-full overflow-hidden bg-bg">
+          <div className="absolute inset-0" data-hero-canvas>
+            {GlobeScene ? <GlobeScene /> : <HeroFallback />}
+          </div>
+          <div data-hero-hud>
+            <LocatorHUD />
+          </div>
+          <HeroName />
+          <div
+            aria-hidden
+            data-hero-scroll
+            className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.4em] text-text-dim"
+          >
+            <span className="opacity-60">scroll</span>
+            <span className="h-6 w-px animate-pulse bg-primary" />
+          </div>
+        </section>
+      </div>
     </HeroAnimator>
   );
 }
