@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /root/
+Sitemap: https://shreyas-sankpal.github.io/sitemap.xml

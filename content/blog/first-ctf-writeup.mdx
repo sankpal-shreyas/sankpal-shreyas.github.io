@@ -1,0 +1,54 @@
+---
+title: "Writeup template: how I structure a CTF post"
+description: "A living template for how I write up web/crypto/pwn challenges — what I include, what I cut."
+date: "2026-04-22"
+tags: ["ctf", "writeups"]
+---
+
+# Writeup template
+
+This is a template, not a real writeup — I'll replace it with an actual challenge once I run my first NYU OSIRIS meet. The shape stays the same across categories:
+
+## Recon
+
+What did the challenge look like when I opened it? Paste the prompt verbatim, note any hints, and list the files I was handed.
+
+```bash
+$ file chal
+chal: ELF 64-bit LSB pie executable
+$ checksec chal
+[*] '/tmp/chal'
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+```
+
+## First thoughts
+
+Where did my mind go first? Include the dead ends — they're the most useful part for other people reading later.
+
+## The pivot
+
+Every challenge I've solved has a moment where the right abstraction clicks. I try to name it clearly: "when I realised the input was a base64-wrapped protobuf, not JSON."
+
+## Payload
+
+The exploit, cleanly. No clever golf.
+
+```python
+from pwn import *
+
+io = remote("chal.ctf.example", 31337)
+io.sendlineafter(b">", b"A" * 72 + p64(0xdeadbeef))
+io.interactive()
+```
+
+## Flag
+
+`ctf{example_flag_here}`
+
+## What I'd do differently
+
+A paragraph on what I'd try next if I had another hour — the gap between "I solved it" and "I understood it."
