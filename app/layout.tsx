@@ -3,8 +3,10 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/shell/Navbar";
 import { Footer } from "@/components/shell/Footer";
+import { CommandPalette } from "@/components/shell/CommandPalette";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { KonamiWatcher } from "@/components/providers/KonamiWatcher";
+import { ViewTransitions } from "@/components/providers/ViewTransitions";
 import { site } from "@/lib/config";
 
 const inter = Inter({
@@ -56,10 +58,13 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen bg-bg text-text antialiased">
         <SmoothScrollProvider>
-          <Navbar />
-          <main className="relative">{children}</main>
-          <Footer />
+          <ViewTransitions>
+            <Navbar />
+            <main className="relative">{children}</main>
+            <Footer />
+          </ViewTransitions>
         </SmoothScrollProvider>
+        <CommandPalette />
         <KonamiWatcher />
       </body>
     </html>
