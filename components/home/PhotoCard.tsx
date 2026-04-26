@@ -21,7 +21,7 @@ export function PhotoCard() {
 
       <figcaption className="flex items-center justify-between border-t border-border bg-bg px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-dim">
         <span className="text-primary glow-text">ID: 0x00A21F</span>
-        <span>{site.location.city}</span>
+        <span>He/Him</span>
       </figcaption>
     </figure>
   );
