@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/shell/CommandPalette";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { KonamiWatcher } from "@/components/providers/KonamiWatcher";
 import { ViewTransitions } from "@/components/providers/ViewTransitions";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { site } from "@/lib/config";
 
 const inter = Inter({
@@ -57,15 +58,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen bg-bg text-text antialiased">
-        <SmoothScrollProvider>
-          <ViewTransitions>
-            <Navbar />
-            <main className="relative">{children}</main>
-            <Footer />
-          </ViewTransitions>
-        </SmoothScrollProvider>
-        <CommandPalette />
-        <KonamiWatcher />
+        <PostHogProvider>
+          <SmoothScrollProvider>
+            <ViewTransitions>
+              <Navbar />
+              <main className="relative">{children}</main>
+              <Footer />
+            </ViewTransitions>
+          </SmoothScrollProvider>
+          <CommandPalette />
+          <KonamiWatcher />
+        </PostHogProvider>
       </body>
     </html>
   );
