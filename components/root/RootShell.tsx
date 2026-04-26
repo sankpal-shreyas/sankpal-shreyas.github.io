@@ -22,7 +22,7 @@ function handleCommand(raw: string): string[] {
   if (cmd === "help" || cmd === "/help") return HELP;
   if (cmd === "whoami")
     return [
-      "uid=1337(shreyas) gid=1337(shreyas) groups=1337(shreyas),42(osiris),808(ctf-players)",
+      "uid=1337(shreyas) gid=1337(shreyas) groups=1337(shreyas),42(nyu),808(ctf-players)",
       `location: ${site.location.city}`,
       `role:     ${site.role}`,
     ];
@@ -39,7 +39,7 @@ function handleCommand(raw: string): string[] {
       "0003  ./build-globe.sh",
       "0004  ./choreograph-tunnel.sh",
       "0005  ./ship",
-      "0006  echo 'if you are reading this, you are hired.'",
+      "0006  echo 'if you are reading this, you have earned my respect.'",
     ];
   if (cmd === "socials")
     return [

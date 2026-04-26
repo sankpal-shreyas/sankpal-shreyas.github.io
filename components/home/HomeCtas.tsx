@@ -35,6 +35,11 @@ export function HomeCtas() {
         <h2 className="mt-2 font-mono text-3xl font-semibold text-text sm:text-4xl">
           what next?
         </h2>
+        <p className="mt-3 font-mono text-xs text-text-dim">
+          <span className="text-muted">{"// "}</span>
+          three doors below — or{" "}
+          <span className="text-accent glow-accent">hack your way in</span>!
+        </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {CARDS.map((c) => (
