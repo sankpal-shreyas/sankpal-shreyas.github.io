@@ -1,0 +1,102 @@
+---
+title: "Prompt caching, or why your cache hit rate is zero"
+description: "Prefix caching on LLM APIs: how it actually works, what it costs, and the silent invalidators that quietly bill you full price."
+date: "2026-06-23"
+tags: ["ai", "llm", "api", "performance"]
+---
+
+I shipped a small agent on the Claude API, looked at the first day's bill, and it was higher than my back-of-napkin math said it should be. The system prompt was big: a few thousand tokens of instructions and context that went out on every single request. But I'd turned on prompt caching, so I assumed I was paying for that prefix once and reading it back cheap forever after.
+
+I wasn't. `cache_read_input_tokens` came back `0`. Every request. I was paying full price for those tokens hundreds of times a day, *plus* the cache-write premium on top, which is somehow worse than not caching at all.
+
+The fix was one line, in the wrong place. Here's everything I wish I'd understood before I shipped.
+
+Earlier I wrote about [prompt engineering as a user](/blog/prompt-engineering-and-context-management-for-devs), squeezing leverage out of a chat assistant. This is the other side of the glass: what changes when you're the one *building* on the API and paying per token.
+
+## The one rule everything follows from
+
+Prompt caching is a **prefix match**. The cache key is the exact bytes of your prompt, in order, up to each breakpoint. Change one byte anywhere in that prefix and everything after it is invalidated. You're back to full price from the change onward.
+
+The render order is fixed: `tools`, then `system`, then `messages`. So the cache is built front-to-back in that order, and the mental model is a stack, stable stuff on the bottom, volatile stuff on top:
+
+```python
+client.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": BIG_STABLE_PROMPT,
+            "cache_control": {"type": "ephemeral"},  # caches tools + system
+        }
+    ],
+    messages=[
+        {"role": "user", "content": question},  # volatile, sits after the breakpoint
+    ],
+)
+```
+
+The breakpoint on the last system block caches the tool definitions and the system prompt together. The user's question changes every time, so it lives *after* the breakpoint where it can't poison the cache. Get this ordering right and most of caching works for free.
+
+The parameter is Anthropic's, but the idea is portable. Most providers cache on a prefix match, and some do it automatically. The discipline below transfers either way.
+
+## What it costs, and when it doesn't pay
+
+A cache **read** runs about `0.1×` the normal input price. A cache **write** costs `1.25×` for the default five-minute window, or `2×` for the one-hour one.
+
+So the first request is slightly *more* expensive than not caching: you pay the write premium. You break even on the second hit and save money on every one after that. Which is exactly why a zero hit rate is the worst possible outcome: you pay the write premium forever and never collect the discount.
+
+The corollary: **if your prompt is different from the first token every time** (no shared preamble, no fixed system prompt, no reused context), there's nothing to reuse. Caching just bolts the write premium onto requests that will never read it back. Leave it off.
+
+## Where the breakpoint goes
+
+The simplest setup is top-level auto-caching: set `cache_control` on the request and it places the breakpoint on the last cacheable block for you. When you want control, put it by hand:
+
+- **Stable content in front, volatile behind.** Anything that changes per request, the user's question, retrieved docs that vary, the current turn, goes after the last breakpoint.
+- **You get four breakpoints per request, max.** Spend them at stability boundaries: end of tools, end of system, end of a long shared preamble.
+- **There's a minimum cacheable prefix**, and it's model-dependent, roughly 1,000 to 4,000 tokens. Below it, the cache silently no-ops: no error, just `cache_creation_input_tokens: 0`. A 3K-token prompt that caches fine on one model won't cache at all on another.
+- **In multi-turn conversations**, move the breakpoint to the last block of the newest turn each request. Earlier breakpoints stay valid read points, so hits accrue as the conversation grows.
+
+TTL is part of the same parameter:
+
+```json
+{"type": "ephemeral"}                // 5-minute window (default)
+{"type": "ephemeral", "ttl": "1h"}   // 1-hour window, 2x write cost
+```
+
+The one-hour window keeps the cache warm across gaps in bursty traffic, but the doubled write cost means it needs more reads to pay off, roughly three hits instead of two.
+
+## The silent cache-killers
+
+This is where my zero came from. None of these throw an error. They just quietly move a byte in your prefix and bill you full price:
+
+- **A timestamp or ID in the system prompt.** A `datetime.now()`, a request UUID, a per-session token interpolated into the prompt header. The prefix is unique every request, so nothing downstream ever caches.
+- **Non-deterministic serialization.** `json.dumps(...)` without sorted keys, or iterating a `set`. The bytes reorder run to run even when the data is identical. Sort it.
+- **A tool list that varies per user or request.** Tools render at position zero, the very front of the prefix. Add, remove, or reorder one and *nothing* caches. Build the tool set deterministically and sort by name.
+- **Conditional system sections.** A pattern like `if premium: system += "..."` makes every flag combination its own distinct prefix, each fighting for the same cache.
+
+The way you catch all of these is the same. Read the `usage` block:
+
+```python
+resp.usage.cache_read_input_tokens      # 0 across repeats → a byte in your prefix is moving
+resp.usage.cache_creation_input_tokens  # what you paid the write premium on
+resp.usage.input_tokens                 # the uncached remainder ONLY
+```
+
+That last one is a trap of its own: `input_tokens` is just the uncached part. If your agent ran for an hour and this shows 4K, the rest was served from cache. The real prompt size is all three fields added together. When the read count sits at zero across identical requests, don't reach for the docs. Diff the raw bytes of two prefixes side by side; the culprit is almost always in the first couple hundred characters.
+
+## A few non-obvious ones
+
+Once the basics held, these are the edges that bit me later:
+
+- **Switching model or editing tools nukes the whole cache.** Caches are model-scoped, and tools sit at the very front of the prefix. Don't swap models mid-conversation, and don't rebuild the tool list to express "modes." Pass the mode as message content instead.
+- **A long agentic turn can outrun the lookback window.** A breakpoint only searches back about 20 content blocks for a prior cache entry. A turn that piles up 30 tool-call/result pairs sails past that and misses. Drop an intermediate breakpoint every ~15 blocks in long turns.
+- **Parallel requests don't share a write.** The cache only becomes readable once the first response *starts streaming*. Fan out N identical-prefix calls at once and all N pay full price. None can read what the others are still writing. Fire one, wait for its first token, then release the rest.
+
+## The discipline, not the feature
+
+The reframe that fixed it for me: caching isn't a switch you flip, it's a discipline about **byte order**. Stable in front, volatile behind the last breakpoint, and the system prompt stays frozen: no clocks, no IDs, no per-user string interpolation living in the prefix. Do that and the discount is automatic. Skip it and no amount of `cache_control` markers will save you.
+
+My timestamp, for the record, was in character 41 of the system prompt. One f-string, hundreds of cold prefixes a day.
+
+There's a [terminal](/contact) on the contact page if you've got a caching war story of your own. I collect them.

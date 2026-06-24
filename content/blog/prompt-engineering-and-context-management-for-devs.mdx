@@ -1,0 +1,83 @@
+---
+title: "Prompt engineering and context management for devs"
+description: "What actually works when you use AI for software development, and why most people are leaving a lot on the table."
+date: "2026-06-05"
+tags: ["ai", "productivity", "engineering", "tooling"]
+---
+
+Most developers I talk to use AI assistants the same way: open a tab, paste some code, ask a question, get an answer, close the tab. Repeat. That's fine. It's also about the least you can get out of these tools.
+
+I've spent a good chunk of the last year using AI heavily for actual development work, not toy problems. What I found is that the difference between "getting answers" and getting real leverage had less to do with which model I picked and more to do with how I set up what I handed it. Here's what made the difference.
+
+## The context problem nobody talks about
+
+A lot of people treat the model like a search engine. Narrow question, narrow answer, next narrow question. The model has no idea what you're building, what you're constrained by, or what you already ruled out. Every message starts cold.
+
+Treating the context window as a workspace instead of a chat box was the thing that actually changed my results.
+
+Before I ask anything now, I drop in:
+
+- What the code does and why it exists
+- The stack: language, framework version, the dependencies that matter here
+- What I already tried and why it didn't work
+- What a good answer looks like for this specific problem
+
+Front-loading that sounds like busywork. It isn't. It kills most of the back-and-forth, because the model doesn't burn its first reply asking me what I'm even doing. It just answers.
+
+```
+Context: Node.js 20, Fastify 4.x, PostgreSQL via Drizzle ORM.
+I have a route that processes Stripe webhook payloads.
+Problem: the payload has to be verified against the raw body before any middleware touches it.
+Currently: using addContentTypeParser, but something in the chain consumes the stream before I get to it.
+Goal: parse and verify the raw body once, then hand the parsed JSON to the route handler.
+```
+
+That's the whole setup. What came back was usable on the first try instead of a list of questions.
+
+## Writing prompts that get specific output
+
+Vague prompt, vague output. The model isn't being lazy when it hands you something generic. You asked something generic.
+
+Patterns that hold up for me:
+
+**Specify the shape of what you want.** "Write a function" is weaker than "write a function that takes X, returns Y, handles these two edge cases, and throws this error type." The more concrete your spec, the less cleanup you do after.
+
+**Constrain the solution space.** If you don't want a total rewrite suggested back at you, say so. "Without changing the existing interface" or "using only what's already in this file" keeps the answer inside your actual situation. Models default to the greenfield version of everything. Block that when you don't want it.
+
+**Ask for the reasoning.** Tacking on "and explain the tradeoffs" turns a snippet into something you can reason about later, instead of something you paste and forget.
+
+**Say what you don't want.** Negative constraints get underused. "No external libraries," "don't touch the schema," "assume I can't change the API contract" all cut down what comes back.
+
+## Keeping context alive across a session
+
+The annoying thing about long sessions on a real codebase: context decays. The window is fixed, and a deep debugging thread slowly crowds out the setup you wrote at the top.
+
+What helps:
+
+**Re-anchor when you switch tracks.** When one sub-problem is done and I move to the next, I'll write something like "that's resolved, moving to the caching layer, here's where we are." Feels redundant. It pulls the model back onto the rails before the next thread starts.
+
+**Don't paste everything.** If a function is 200 lines and the model only needs one method, give it the 30 lines that matter and describe the rest. Tighter answers, and you don't waste the window.
+
+**Start fresh when the problem is actually new.** I used to keep one conversation going forever so I wouldn't have to re-explain the stack. Wrong instinct. A clean session with good upfront context beats a long one that has drifted into all your earlier wrong turns. Re-establishing context costs a minute. It's worth it.
+
+## Treat it like a pair, not an oracle
+
+The framing that helped me most: the model is a fast collaborator who still has to be brought up to speed, same as any new person on the team.
+
+You wouldn't drop into a chair next to a senior engineer and say "fix this" with nothing on screen. Same deal here.
+
+So:
+
+- **Show your work.** Paste the error, the actual output, the expected output. Don't describe the bug, show it.
+- **Push back instead of restarting.** If the first answer is close but wrong, say "close, but it doesn't handle X." Iterating beats scrapping it and starting over.
+- **Use it to think, not just to type.** Some of my best sessions had no code in them. "I'm choosing between A and B here, this is the tradeoff I see, what am I missing?" gets you real value.
+
+## The habit that helped most
+
+For any non-trivial session, I keep a scratch file. Before I open an AI tab I write down three things: what I'm trying to do, the constraints that matter, and what I know versus what I don't.
+
+Half the time, writing it down is enough on its own and I never paste it. The other half, it becomes the prompt. Either way I'm not starting from zero.
+
+The tool is only as good as what you feed it. Most people skimp on that part and then decide the tool is mediocre. Try the other way for a week.
+
+There's a [terminal](/contact) on the contact page if your setup looks different. Curious what other people are doing.
