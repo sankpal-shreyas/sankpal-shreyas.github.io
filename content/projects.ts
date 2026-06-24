@@ -35,6 +35,29 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "memoryroots",
+    title: "MemoryRoots: Offline AI for Indigenous Knowledge",
+    tagline:
+      "Offline-first Gemma agent that interviews village elders and builds a searchable knowledge graph.",
+    year: "2026",
+    stack: ["Python", "Gemma", "Ollama", "Unsloth", "ChromaDB", "SQLite", "Whisper", "Gradio"],
+    tags: ["ai-ml", "fullstack"],
+    description:
+      "A fully offline system to preserve endangered indigenous knowledge in communities where cloud AI isn't an option. A single Gemma model runs voice-guided interviews with elders, identifies plants, tools, and artifacts from photos, and uses native function calling to turn transcripts into structured knowledge-graph entries. Retrieval blends FTS5 keyword search with ChromaDB semantic search, and every answer cites the elder it came from and surfaces safety warnings. Ships an Unsloth LoRA fine-tuning recipe and a Gemma Edge fallback for mobile-class hardware.",
+    highlights: [
+      "100% offline inference. No cloud APIs or keys; one Gemma model handles reasoning, vision, and extraction.",
+      "Hybrid retrieval (FTS5 keyword + ChromaDB semantic) with per-elder attribution and safety surfacing.",
+      "Offline speech-to-text (Whisper) and text-to-speech in 100+ languages (espeak-ng).",
+    ],
+    links: [
+      { label: "github", href: "https://github.com/sankpal-shreyas/MemoryRoots" },
+      {
+        label: "demo",
+        href: "https://huggingface.co/spaces/shreyas-sankpal/MemoryRoots",
+      },
+    ],
+  },
+  {
     slug: "pyfaest",
     title: "pyfaest: Python Bindings for FAEST",
     tagline:
@@ -52,6 +75,29 @@ export const projects: Project[] = [
     links: [
       { label: "github", href: "https://github.com/sankpal-shreyas/pyfaest" },
       { label: "pypi", href: "https://pypi.org/project/pyfaest" },
+    ],
+  },
+  {
+    slug: "civic-aid-navigator",
+    title: "Civic-Aid Navigator: Multi-Channel Disaster Aid",
+    tagline:
+      "Government disaster-aid intake across web, SMS, and a caseworker dashboard, powered by IBM watsonx Granite agents.",
+    year: "2026",
+    stack: ["React", "TypeScript", "Vite", "Netlify Functions", "IBM watsonx.ai", "Granite"],
+    tags: ["ai-ml", "fullstack"],
+    description:
+      "A disaster-relief intake platform built for IBM's AI Experiential Learning Lab that meets citizens wherever their connectivity allows. Three surfaces share one agent workflow: a universal web intake form, an SMS path for low-bandwidth and feature-phone users, and a caseworker triage dashboard. An agentWorkflow service layer wraps IBM watsonx.ai Granite models and Orchestrate skills behind a deterministic mock mode, so demos stay reliable with zero credentials while real models drop in via env vars.",
+    highlights: [
+      "Three intake channels (web, SMS, agency dashboard) over a single agent workflow.",
+      "watsonx Granite + Orchestrate hooks with a credential-free mock mode for reliable demos.",
+      "Netlify serverless deployment with a live public POC.",
+    ],
+    links: [
+      { label: "github", href: "https://github.com/sankpal-shreyas/Civic-Aid-Navigator" },
+      {
+        label: "demo",
+        href: "https://civic-aid-navigator-poc.netlify.app/",
+      },
     ],
   },
   {
