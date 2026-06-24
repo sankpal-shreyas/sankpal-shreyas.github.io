@@ -17,8 +17,10 @@ export default function RootPage() {
         root@shreyas:~#
       </h1>
       <p className="mt-3 max-w-2xl font-mono text-sm text-text-dim">
-        you unlocked the konami door. have a poke around — nothing destructive
-        back here, just easter eggs.
+        you found your way in. have a poke around — nothing destructive back
+        here, just easter eggs. type <span className="text-primary">help</span>{" "}
+        to start, or <span className="text-primary">trophies</span> to see what
+        you&rsquo;ve discovered.
       </p>
 
       <div className="mt-10">

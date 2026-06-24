@@ -1,3 +1,5 @@
+# nothing to see here. well — almost nothing.
+# the /root/ disallow below is deliberate. curious? ↑↑↓↓←→←→ba
 User-agent: *
 Allow: /
 Disallow: /root/

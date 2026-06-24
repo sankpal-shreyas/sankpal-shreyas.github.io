@@ -44,12 +44,17 @@ export function BlogList({ posts }: { posts: PostSummary[] }) {
             href={`/blog/${post.slug}`}
             className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-4 border-b border-border py-5 font-mono transition-colors hover:border-primary/60"
           >
-            <time
-              dateTime={post.date}
-              className="text-xs text-accent glow-accent"
-            >
-              {post.date}
-            </time>
+            <div className="flex flex-col gap-0.5">
+              <time
+                dateTime={post.date}
+                className="text-xs text-accent glow-accent"
+              >
+                {post.date}
+              </time>
+              <span className="text-[11px] text-text-dim">
+                {post.readingMinutes} min
+              </span>
+            </div>
             <div>
               <p className="text-base text-text group-hover:text-primary group-hover:glow-text">
                 {post.title}

@@ -8,7 +8,20 @@ import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvide
 import { KonamiWatcher } from "@/components/providers/KonamiWatcher";
 import { ViewTransitions } from "@/components/providers/ViewTransitions";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
+import { ConsoleBanner } from "@/components/providers/ConsoleBanner";
+import { EasterEggToaster } from "@/components/providers/EasterEggToaster";
+import { ShortcutsOverlay } from "@/components/providers/ShortcutsOverlay";
+import { IdleGlitch } from "@/components/providers/IdleGlitch";
 import { site } from "@/lib/config";
+
+// A breadcrumb for anyone who reads the page source — recon move #1.
+const RECON_COMMENT = `
+  nmap scan report for ${new URL(site.baseUrl).host}
+  PORT      STATE     SERVICE
+  80/tcp    open      http
+  443/tcp   open      https
+  1337/tcp  filtered  root-shell   # try the contra code: ↑ ↑ ↓ ↓ ← → ← → b a
+`;
 
 const inter = Inter({
   subsets: ["latin"],
@@ -58,6 +71,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen bg-bg text-text antialiased">
+        <div
+          hidden
+          aria-hidden
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: `<!--${RECON_COMMENT}-->` }}
+        />
         <PostHogProvider>
           <SmoothScrollProvider>
             <ViewTransitions>
@@ -68,6 +87,10 @@ export default function RootLayout({
           </SmoothScrollProvider>
           <CommandPalette />
           <KonamiWatcher />
+          <ShortcutsOverlay />
+          <EasterEggToaster />
+          <ConsoleBanner />
+          <IdleGlitch />
         </PostHogProvider>
       </body>
     </html>

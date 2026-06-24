@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { projects } from "@/content/projects";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { RevealStagger, RevealItem } from "@/components/ui/Reveal";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "projects",
@@ -32,6 +33,8 @@ export default function ProjectsPage() {
           </RevealItem>
         ))}
       </RevealStagger>
+
+      <ScrollToTop threshold={200} />
     </div>
   );
 }

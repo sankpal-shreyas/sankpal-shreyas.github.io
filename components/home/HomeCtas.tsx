@@ -38,7 +38,13 @@ export function HomeCtas() {
         <p className="mt-3 font-mono text-xs text-text-dim">
           <span className="text-muted">{"// "}</span>
           three doors below — or{" "}
-          <span className="text-accent glow-accent">hack your way in</span>!
+          <span
+            className="cursor-help text-accent glow-accent"
+            title="↑ ↑ ↓ ↓ ← → ← → b a"
+          >
+            hack your way in
+          </span>
+          !
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">

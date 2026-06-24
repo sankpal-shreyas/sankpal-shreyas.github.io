@@ -10,8 +10,70 @@ const LINES = [
   "[ GEO  ] Brooklyn, NY · 40.7128°N 74.0060°W",
 ];
 
+// `site.location.latencyMs` is only the pre-measurement fallback now.
+const FALLBACK_MS = site.location.latencyMs;
+
+/**
+ * Real connection latency, measured client-side. We seed it instantly from the
+ * actual document load (Navigation Timing TTFB — no extra request), then refine
+ * to a live round-trip by fetching a tiny same-origin asset a few times,
+ * cache-busted, and taking the best sample. Falls back to the config value if
+ * the API is unavailable or the requests are blocked (offline / ad blocker).
+ */
+function useConnectionLatency() {
+  const [latency, setLatency] = useState<number>(FALLBACK_MS);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const nav = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (nav) {
+      const ttfb = nav.responseStart - nav.requestStart;
+      if (ttfb > 0 && ttfb < 60000) setLatency(Math.round(ttfb));
+    }
+
+    const measure = async () => {
+      const samples: number[] = [];
+      for (let i = 0; i < 3 && !cancelled; i++) {
+        const start = performance.now();
+        try {
+          await fetch(`/favicon.svg?p=${Date.now()}-${i}`, { cache: "no-store" });
+        } catch {
+          return; // blocked / offline — keep the TTFB or fallback value
+        }
+        samples.push(performance.now() - start);
+      }
+      if (cancelled || samples.length === 0) return;
+      setLatency(Math.max(1, Math.round(Math.min(...samples))));
+    };
+
+    // Defer so the pings never compete with first paint or scroll.
+    const ric = (window as { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+    const idle =
+      typeof ric === "function"
+        ? ric(() => void measure())
+        : window.setTimeout(() => void measure(), 200);
+
+    return () => {
+      cancelled = true;
+      const cic = (window as { cancelIdleCallback?: (h: number) => void })
+        .cancelIdleCallback;
+      if (idle !== undefined) {
+        if (typeof cic === "function") cic(idle);
+        else clearTimeout(idle);
+      }
+    };
+  }, []);
+
+  return latency;
+}
+
 export function LocatorHUD() {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
+  const latency = useConnectionLatency();
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +119,7 @@ export function LocatorHUD() {
         <span>long</span>
         <span className="text-text">{site.location.lng.toFixed(4)}°</span>
         <span>latency</span>
-        <span className="text-accent glow-accent">{site.location.latencyMs}ms</span>
+        <span className="text-accent glow-accent">{latency}ms</span>
         <span>status</span>
         <span className="text-primary glow-text">online</span>
       </div>

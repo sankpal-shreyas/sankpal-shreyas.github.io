@@ -11,6 +11,7 @@ import {
   Github,
   Home,
   Linkedin,
+  Lock,
   Mail,
   Search,
   Terminal,
@@ -21,9 +22,12 @@ type Cmd = {
   id: string;
   label: string;
   hint?: string;
-  group: "navigate" | "links" | "actions";
+  group: "navigate" | "links" | "actions" | "system";
   keywords?: string;
   icon: React.ComponentType<{ className?: string }>;
+  // Non-interactive teaser entries (e.g. "access root") are shown but can't be
+  // clicked or run — you have to find the real way in.
+  disabled?: boolean;
   run: (router: ReturnType<typeof useRouter>) => void;
 };
 
@@ -123,12 +127,23 @@ const COMMANDS: Cmd[] = [
       navigator.clipboard?.writeText(site.socials.email).catch(() => {});
     },
   },
+  {
+    id: "root",
+    label: "access root",
+    hint: "// restricted — find another way",
+    group: "system",
+    keywords: "secret hidden terminal shell sudo easter egg konami",
+    icon: Lock,
+    disabled: true,
+    run: () => {},
+  },
 ];
 
 const GROUP_LABEL: Record<Cmd["group"], string> = {
   navigate: "navigate",
   links: "links",
   actions: "actions",
+  system: "system",
 };
 
 export function CommandPalette() {
@@ -194,6 +209,7 @@ export function CommandPalette() {
   }, [filtered]);
 
   const run = (cmd: Cmd) => {
+    if (cmd.disabled) return;
     setOpen(false);
     cmd.run(router);
   };
@@ -272,12 +288,15 @@ export function CommandPalette() {
                       key={cmd.id}
                       role="option"
                       aria-selected={isActive}
+                      aria-disabled={cmd.disabled}
                       onMouseEnter={() => setActive(index)}
                       onClick={() => run(cmd)}
-                      className={`flex cursor-pointer items-center gap-3 px-4 py-2 ${
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-text-dim hover:bg-bg"
+                      className={`flex items-center gap-3 px-4 py-2 ${
+                        cmd.disabled
+                          ? "cursor-not-allowed text-muted/60"
+                          : isActive
+                            ? "cursor-pointer bg-primary/10 text-primary"
+                            : "cursor-pointer text-text-dim hover:bg-bg"
                       }`}
                     >
                       <Icon

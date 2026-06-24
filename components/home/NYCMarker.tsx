@@ -1,14 +1,23 @@
 "use client";
 
 import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import type { Mesh } from "three";
+import { site } from "@/lib/config";
+import { showToast } from "@/lib/eggs";
+import { unlock } from "@/lib/achievements";
 
 type Props = { position: [number, number, number] };
 
 export function NYCMarker({ position }: Props) {
   const ringRef = useRef<Mesh>(null!);
   const dotRef = useRef<Mesh>(null!);
+
+  const onMarkerClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    unlock("nyc-marker");
+    showToast(`you found me · ${site.location.city}`, "primary");
+  };
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -27,6 +36,21 @@ export function NYCMarker({ position }: Props) {
 
   return (
     <group position={position}>
+      {/* Invisible, generously sized hitbox so the tiny pulsing marker is
+          actually clickable — the "find me on the globe" easter egg. */}
+      <mesh
+        onClick={onMarkerClick}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "";
+        }}
+      >
+        <sphereGeometry args={[0.07, 8, 8]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
       <mesh ref={dotRef}>
         <sphereGeometry args={[0.015, 16, 16]} />
         <meshBasicMaterial color="#39ff14" toneMapped={false} />

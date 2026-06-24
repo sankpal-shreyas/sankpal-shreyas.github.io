@@ -17,7 +17,8 @@ export default function NotFound() {
         {`$ route --trace \${requested}
 [0] GET  \${requested}
 [1] 404  not in routing table
-[2] suggestion: cd /`}
+[2] suggestion: cd /
+[3] hint: not every route is in the table — some you have to earn.`}
       </pre>
 
       <div className="mt-8 flex justify-center gap-3 font-mono text-xs">

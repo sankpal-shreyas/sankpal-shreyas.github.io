@@ -5,14 +5,22 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypePrettyCode, {
   type Options as PrettyOptions,
 } from "rehype-pretty-code";
+import rehypeSlug from "rehype-slug";
 import { ArrowLeft } from "lucide-react";
-import { getAllPostSlugs, getPost } from "@/lib/mdx";
+import { getAllPostSlugs, getHeadings, getPost } from "@/lib/mdx";
 import { mdxComponents } from "@/components/blog/mdxComponents";
+import { ReadingProgress } from "@/components/blog/ReadingProgress";
+import { TableOfContents } from "@/components/blog/TableOfContents";
+import { ReadAloud } from "@/components/blog/ReadAloud";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 const prettyCodeOptions: PrettyOptions = {
   theme: "github-dark",
   keepBackground: false,
-  defaultLang: "plaintext",
+  // Block-only default. A bare string applies to inline code too, which makes
+  // rehype-pretty-code wrap every `inline` span in a figure + data-line — and
+  // the figure CSS then renders each inline fragment as its own block line.
+  defaultLang: { block: "plaintext" },
 };
 
 type Params = { slug: string };
@@ -44,40 +52,52 @@ export default async function PostPage({
   const post = getPost(slug);
   if (!post) notFound();
 
+  const headings = getHeadings(post.content);
+
   return (
-    <article className="mx-auto max-w-3xl px-6 pt-32 pb-24">
-      <Link
-        href="/blog"
-        className="mb-10 inline-flex items-center gap-1.5 font-mono text-xs text-text-dim hover:text-primary"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        back to log
-      </Link>
-
-      <header className="mb-10 border-b border-border pb-6">
-        <time
-          dateTime={post.date}
-          className="font-mono text-xs text-accent glow-accent"
+    <>
+      <ReadingProgress />
+      <TableOfContents headings={headings} />
+      <article className="mx-auto max-w-3xl px-6 pt-32 pb-24">
+        <Link
+          href="/blog"
+          className="mb-10 inline-flex items-center gap-1.5 font-mono text-xs text-text-dim hover:text-primary"
         >
-          {post.date}
-        </time>
-        <h1 className="mt-2 font-mono text-3xl font-semibold text-text sm:text-4xl">
-          {post.title}
-        </h1>
-        <p className="mt-3 font-mono text-sm text-text-dim">{post.description}</p>
-      </header>
+          <ArrowLeft className="size-3.5" aria-hidden />
+          back to log
+        </Link>
 
-      <div className="prose-terminal">
-        <MDXRemote
-          source={post.content}
-          components={mdxComponents}
-          options={{
-            mdxOptions: {
-              rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
-            },
-          }}
-        />
-      </div>
-    </article>
+        <header className="mb-10 border-b border-border pb-6">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs">
+            <time dateTime={post.date} className="text-accent glow-accent">
+              {post.date}
+            </time>
+            <span aria-hidden className="text-text-dim">
+              ·
+            </span>
+            <span className="text-text-dim">~{post.readingMinutes} min read</span>
+            <ReadAloud content={post.content} />
+          </div>
+          <h1 className="mt-2 font-mono text-3xl font-semibold text-text sm:text-4xl">
+            {post.title}
+          </h1>
+          <p className="mt-3 font-mono text-sm text-text-dim">{post.description}</p>
+        </header>
+
+        <div className="prose-terminal">
+          <MDXRemote
+            source={post.content}
+            components={mdxComponents}
+            options={{
+              mdxOptions: {
+                rehypePlugins: [rehypeSlug, [rehypePrettyCode, prettyCodeOptions]],
+              },
+            }}
+          />
+        </div>
+
+        <ScrollToTop />
+      </article>
+    </>
   );
 }

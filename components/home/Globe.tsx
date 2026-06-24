@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import {
   AdditiveBlending,
   BackSide,
@@ -150,9 +150,98 @@ const PRESETS: Record<Quality, {
   },
 };
 
+// Land is dark on the water-specular mask (oceans are bright); place a dot
+// wherever the sampled pixel is below this luminance.
+const LAND_LUM_THRESHOLD = 110;
+
+/**
+ * Samples the equirectangular land/water mask once on the client and builds a
+ * point cloud of dots over land, so the globe reads as Earth and the NYC marker
+ * sits on a recognizable coastline. Density follows the quality preset; the
+ * longitude step widens toward the poles to keep dots roughly evenly spaced.
+ */
+function useLandDotGeometry(quality: Quality) {
+  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let scheduled: number | undefined;
+
+    const ric = (window as { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+    const cic = (window as { cancelIdleCallback?: (h: number) => void })
+      .cancelIdleCallback;
+
+    const img = new Image();
+    img.decoding = "async";
+    img.src = "/earth-water.png";
+
+    img.onload = () => {
+      if (cancelled) return;
+
+      // Sampling the equirectangular mask is a few thousand point computations
+      // plus a getImageData read. Run it during idle time so it never hitches
+      // first paint or scroll on load.
+      const sample = () => {
+        if (cancelled) return;
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        const { data } = ctx.getImageData(0, 0, w, h);
+
+        const isLand = (lat: number, lng: number) => {
+          const x = Math.min(w - 1, Math.max(0, Math.floor(((lng + 180) / 360) * w)));
+          const y = Math.min(h - 1, Math.max(0, Math.floor(((90 - lat) / 180) * h)));
+          const i = (y * w + x) * 4;
+          return (data[i] + data[i + 1] + data[i + 2]) / 3 < LAND_LUM_THRESHOLD;
+        };
+
+        const dLat = quality === "low" ? 2.4 : 1.6;
+        const positions: number[] = [];
+        for (let lat = -84; lat <= 84; lat += dLat) {
+          const dLng = dLat / Math.max(Math.cos((lat * Math.PI) / 180), 0.22);
+          for (let lng = -180; lng < 180; lng += dLng) {
+            if (isLand(lat, lng)) {
+              positions.push(...latLngToVec3(lat, lng, GLOBE_RADIUS * 1.002));
+            }
+          }
+        }
+
+        if (cancelled) return;
+        const geo = new BufferGeometry();
+        geo.setAttribute("position", new Float32BufferAttribute(positions, 3));
+        setGeometry(geo);
+      };
+
+      scheduled =
+        typeof ric === "function" ? ric(sample) : window.setTimeout(sample, 0);
+    };
+
+    return () => {
+      cancelled = true;
+      if (scheduled !== undefined) {
+        if (typeof cic === "function") cic(scheduled);
+        else clearTimeout(scheduled);
+      }
+    };
+  }, [quality]);
+
+  // Release the GPU buffer when it's replaced or the globe unmounts.
+  useEffect(() => () => geometry?.dispose(), [geometry]);
+
+  return geometry;
+}
+
 export function Globe({ quality = "high" }: { quality?: Quality } = {}) {
   const rootRef = useRef<Group>(null!);
   const starsRef = useRef<Points>(null!);
+  const drag = useRef({ active: false, lastX: 0, vel: 0 });
+  const { gl } = useThree();
 
   const preset = PRESETS[quality];
 
@@ -170,14 +259,65 @@ export function Globe({ quality = "high" }: { quality?: Quality } = {}) {
     [preset.starCount],
   );
   const cityGeometry = useMemo(() => buildCityPointsGeometry(), []);
+  const landGeometry = useLandDotGeometry(quality);
 
   const [nycX, nycY, nycZ] = useMemo(
     () => latLngToVec3(site.location.lat, site.location.lng, GLOBE_RADIUS * 1.01),
     [],
   );
 
+  // Desktop-only: drag horizontally to spin the globe in place. Skipped on
+  // coarse pointers so it never fights touch scroll / the pinned scroll scene.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const el = gl.domElement;
+    el.style.cursor = "grab";
+    el.style.touchAction = "pan-y";
+
+    const onDown = (e: PointerEvent) => {
+      drag.current.active = true;
+      drag.current.lastX = e.clientX;
+      drag.current.vel = 0;
+      el.style.cursor = "grabbing";
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!drag.current.active) return;
+      const dx = e.clientX - drag.current.lastX;
+      drag.current.lastX = e.clientX;
+      const delta = dx * 0.005;
+      if (rootRef.current) rootRef.current.rotation.y += delta;
+      drag.current.vel = delta;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!drag.current.active) return;
+      drag.current.active = false;
+      el.style.cursor = "grab";
+      el.releasePointerCapture?.(e.pointerId);
+    };
+
+    el.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      el.style.cursor = "";
+    };
+  }, [gl]);
+
   useFrame((_, dt) => {
-    if (rootRef.current) rootRef.current.rotation.y += dt * 0.06;
+    const root = rootRef.current;
+    if (root && !drag.current.active) {
+      // Ambient spin + decaying inertia handed off from a drag release.
+      root.rotation.y += dt * 0.06 + drag.current.vel;
+      drag.current.vel *= 0.92;
+    }
     if (starsRef.current) starsRef.current.rotation.y -= dt * 0.01;
   });
 
@@ -202,6 +342,18 @@ export function Globe({ quality = "high" }: { quality?: Quality } = {}) {
         <lineSegments geometry={wireGeometry}>
           <lineBasicMaterial color="#39ff14" transparent opacity={0.22} />
         </lineSegments>
+
+        {landGeometry && (
+          <points geometry={landGeometry}>
+            <pointsMaterial
+              color="#39ff14"
+              size={0.0115}
+              sizeAttenuation
+              transparent
+              opacity={0.55}
+            />
+          </points>
+        )}
 
         <points geometry={cityGeometry}>
           <pointsMaterial
