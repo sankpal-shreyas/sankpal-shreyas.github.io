@@ -50,3 +50,24 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Email subscribers about posts added in this push (only after a successful
+  # deploy, so the post URL is live). Idempotent — see scripts/notify-subscribers.mjs.
+  notify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Email subscribers about new posts
+        run: node scripts/notify-subscribers.mjs
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          SITE_BASE_URL: https://sankpal-shreyas.github.io

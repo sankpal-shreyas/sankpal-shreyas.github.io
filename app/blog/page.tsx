@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Rss } from "lucide-react";
 import { getAllPosts } from "@/lib/mdx";
 import { BlogList } from "@/components/blog/BlogList";
+import { SubscribeForm } from "@/components/blog/SubscribeForm";
 
 export const metadata: Metadata = {
   title: "blog",
@@ -23,6 +25,20 @@ export default function BlogIndexPage() {
           Short-form posts on security, backend engineering, and ML experiments.
           New entries land here via plain MDX commits.
         </p>
+        {/* Subscribe options: email (Buttondown) + RSS. */}
+        <div className="mt-5 space-y-3">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-text-dim">
+            get new posts
+          </p>
+          <SubscribeForm />
+          <a
+            href="/feed.xml"
+            className="inline-flex items-center gap-1.5 font-mono text-xs text-text-dim transition-colors hover:text-primary"
+          >
+            <Rss className="size-3.5" aria-hidden />
+            or subscribe via rss
+          </a>
+        </div>
       </header>
 
       <BlogList posts={posts} />

@@ -55,6 +55,11 @@ export const metadata: Metadata = {
     description: site.bio,
   },
   icons: { icon: "/favicon.svg" },
+  alternates: {
+    types: {
+      "application/rss+xml": [{ url: "/feed.xml", title: `${site.name} — blog` }],
+    },
+  },
 };
 
 export const viewport: Viewport = {

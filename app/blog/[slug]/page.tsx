@@ -6,12 +6,13 @@ import rehypePrettyCode, {
   type Options as PrettyOptions,
 } from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Rss } from "lucide-react";
 import { getAllPostSlugs, getHeadings, getPost } from "@/lib/mdx";
 import { mdxComponents } from "@/components/blog/mdxComponents";
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ReadAloud } from "@/components/blog/ReadAloud";
+import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 const prettyCodeOptions: PrettyOptions = {
@@ -95,6 +96,24 @@ export default async function PostPage({
             }}
           />
         </div>
+
+        <footer className="mt-16 border-t border-border pt-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-text-dim">
+            get new posts
+          </p>
+          <p className="mb-4 mt-2 max-w-xl font-mono text-sm text-text-dim">
+            New writeups on security, backend, and ML — straight to your inbox.
+            No spam, unsubscribe anytime.
+          </p>
+          <SubscribeForm />
+          <a
+            href="/feed.xml"
+            className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-text-dim transition-colors hover:text-primary"
+          >
+            <Rss className="size-3.5" aria-hidden />
+            or subscribe via rss
+          </a>
+        </footer>
 
         <ScrollToTop />
       </article>
