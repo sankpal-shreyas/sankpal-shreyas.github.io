@@ -74,8 +74,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-bg text-text antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var m=localStorage.getItem('reading');if(m)document.documentElement.setAttribute('data-reading',m)}catch(e){}",
+          }}
+        />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded-sm focus:border focus:border-primary focus:bg-bg-panel focus:px-3 focus:py-2 focus:font-mono focus:text-sm focus:text-primary"
+        >
+          skip to content
+        </a>
         <div
           hidden
           aria-hidden
@@ -86,7 +102,7 @@ export default function RootLayout({
           <SmoothScrollProvider>
             <ViewTransitions>
               <Navbar />
-              <main className="relative">{children}</main>
+              <main id="main" className="relative">{children}</main>
               <Footer />
             </ViewTransitions>
           </SmoothScrollProvider>

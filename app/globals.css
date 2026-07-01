@@ -225,3 +225,101 @@ figure[data-rehype-pretty-code-figure] {
     display: none;
   }
 }
+
+/* Higher-contrast preference: drop the scanline overlay so it can't muddy text. */
+@media (prefers-contrast: more) {
+  body::before {
+    display: none;
+  }
+}
+
+/* ── Reading themes ──────────────────────────────────────────────────────────
+   Two comfortable reading modes layered over the default "terminal" look, set on
+   <html data-reading> (ReadingTheme + the layout's inline no-flash script). Both
+   swap article prose to a proportional face at a larger size and drop the CRT
+   scanlines; "read" stays dark, "paper" turns the body into a warm sepia sheet.
+   Unlayered so these win over the Tailwind utilities on the MDX elements;
+   headings and code blocks stay monospace to keep the site's character. */
+[data-reading="read"] body::before,
+[data-reading="paper"] body::before {
+  display: none;
+}
+[data-reading="read"] .prose-terminal :is(p, li),
+[data-reading="paper"] .prose-terminal :is(p, li) {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+[data-reading="read"] .prose-terminal blockquote,
+[data-reading="paper"] .prose-terminal blockquote {
+  font-style: normal;
+}
+
+/* Dark "read": brighten the body text. */
+[data-reading="read"] .prose-terminal :is(p, li) {
+  color: var(--color-text);
+}
+
+/* Sepia "paper": a contained warm sheet with dark ink, framed by the dark UI so
+   it reads as a printed page rather than a half-broken light theme. Code blocks
+   stay dark on purpose. */
+[data-reading="paper"] .prose-terminal {
+  --paper-bg: #f3ead4;
+  --paper-ink: #2c2620;
+  --paper-dim: #5b5446;
+  --paper-link: #1c6b3a;
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  background: var(--paper-bg);
+  padding: 1.75rem 2rem;
+  color: var(--paper-ink);
+}
+[data-reading="paper"] .prose-terminal :is(p, li) {
+  color: var(--paper-ink);
+}
+[data-reading="paper"] .prose-terminal li::marker {
+  color: var(--paper-link);
+}
+[data-reading="paper"] .prose-terminal :is(h1, h2, h3) {
+  color: var(--paper-ink);
+  text-shadow: none;
+}
+[data-reading="paper"] .prose-terminal a {
+  color: var(--paper-link);
+  text-decoration-color: color-mix(in srgb, var(--paper-link) 45%, transparent);
+}
+[data-reading="paper"] .prose-terminal a:hover {
+  text-decoration-color: var(--paper-link);
+}
+[data-reading="paper"] .prose-terminal :not(pre) > code {
+  color: #8a3b12;
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+/* Keep fenced code blocks dark on the sepia sheet (light-article / dark-code) —
+   the figure CSS makes the <pre> transparent, which would otherwise leave the
+   dark-theme syntax colors washed out on the light background. */
+[data-reading="paper"] .prose-terminal [data-rehype-pretty-code-figure] pre {
+  background: var(--color-bg-panel);
+}
+[data-reading="paper"] .prose-terminal blockquote {
+  color: var(--paper-dim);
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.03);
+}
+[data-reading="paper"] .prose-terminal hr {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+[data-reading="paper"] .prose-terminal thead {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+[data-reading="paper"] .prose-terminal th {
+  color: var(--paper-link);
+}
+[data-reading="paper"] .prose-terminal td {
+  color: var(--paper-ink);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+[data-reading="paper"] .prose-terminal del {
+  color: var(--paper-dim);
+}

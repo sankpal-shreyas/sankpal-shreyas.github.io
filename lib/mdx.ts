@@ -11,6 +11,7 @@ export type PostFrontmatter = {
   description: string;
   date: string;
   tags?: string[];
+  featured?: boolean;
 };
 
 export type PostSummary = PostFrontmatter & {
@@ -33,6 +34,7 @@ function readPostFile(slug: string): Post {
     description: data.description,
     date: data.date,
     tags: data.tags,
+    featured: data.featured ?? false,
     readingMinutes: readingMinutes(parsed.content),
     content: parsed.content,
   };
@@ -56,6 +58,7 @@ export function getAllPosts(): PostSummary[] {
         description: p.description,
         date: p.date,
         tags: p.tags,
+        featured: p.featured,
         readingMinutes: p.readingMinutes,
       };
     })

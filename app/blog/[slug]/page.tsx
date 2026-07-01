@@ -6,12 +6,14 @@ import rehypePrettyCode, {
   type Options as PrettyOptions,
 } from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 import { ArrowLeft, Rss } from "lucide-react";
 import { getAllPostSlugs, getHeadings, getPost } from "@/lib/mdx";
 import { mdxComponents } from "@/components/blog/mdxComponents";
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ReadAloud } from "@/components/blog/ReadAloud";
+import { ReadingTheme } from "@/components/blog/ReadingTheme";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
@@ -60,13 +62,16 @@ export default async function PostPage({
       <ReadingProgress />
       <TableOfContents headings={headings} />
       <article className="mx-auto max-w-3xl px-6 pt-32 pb-24">
-        <Link
-          href="/blog"
-          className="mb-10 inline-flex items-center gap-1.5 font-mono text-xs text-text-dim hover:text-primary"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden />
-          back to log
-        </Link>
+        <div className="mb-10 flex items-center justify-between gap-4">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 font-mono text-xs text-text-dim hover:text-primary"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden />
+            back to log
+          </Link>
+          <ReadingTheme />
+        </div>
 
         <header className="mb-10 border-b border-border pb-6">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs">
@@ -91,6 +96,7 @@ export default async function PostPage({
             components={mdxComponents}
             options={{
               mdxOptions: {
+                remarkPlugins: [remarkGfm],
                 rehypePlugins: [rehypeSlug, [rehypePrettyCode, prettyCodeOptions]],
               },
             }}

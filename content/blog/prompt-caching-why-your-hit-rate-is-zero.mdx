@@ -3,6 +3,7 @@ title: "Prompt caching, or why your cache hit rate is zero"
 description: "Prefix caching on LLM APIs: how it actually works, what it costs, and the silent invalidators that quietly bill you full price."
 date: "2026-06-23"
 tags: ["ai", "llm", "api", "performance"]
+featured: true
 ---
 
 I shipped a small agent on the Claude API, looked at the first day's bill, and it was higher than my back-of-napkin math said it should be. The system prompt was big: a few thousand tokens of instructions and context that went out on every single request. But I'd turned on prompt caching, so I assumed I was paying for that prefix once and reading it back cheap forever after.

@@ -18,15 +18,17 @@ function HeadingAnchor({ id }: { id?: string }) {
 }
 
 export const mdxComponents = {
+  // Render a top-level `#` as <h2>: the post title is the sole page <h1>, so
+  // this keeps a stray top-level heading from creating a second h1 (a11y + SEO).
   h1: ({ id, children, ...p }: ComponentProps<"h1">) => (
-    <h1
+    <h2
       id={id}
       className="group mt-8 mb-4 scroll-mt-28 font-mono text-3xl font-semibold text-text glow-text"
       {...p}
     >
       {children}
       <HeadingAnchor id={id} />
-    </h1>
+    </h2>
   ),
   h2: ({ id, children, ...p }: ComponentProps<"h2">) => (
     <h2
@@ -80,5 +82,31 @@ export const mdxComponents = {
   ),
   hr: (p: ComponentProps<"hr">) => (
     <hr className="my-10 border-border" {...p} />
+  ),
+  table: (p: ComponentProps<"table">) => (
+    <div className="my-6 overflow-x-auto">
+      <table className="w-full border-collapse font-mono text-[13px]" {...p} />
+    </div>
+  ),
+  thead: (p: ComponentProps<"thead">) => (
+    <thead className="border-b border-border-strong" {...p} />
+  ),
+  th: (p: ComponentProps<"th">) => (
+    <th className="px-3 py-2 text-left font-semibold text-primary" {...p} />
+  ),
+  td: (p: ComponentProps<"td">) => (
+    <td className="border-b border-border px-3 py-2 align-top text-text-dim" {...p} />
+  ),
+  del: (p: ComponentProps<"del">) => (
+    <del className="text-muted line-through" {...p} />
+  ),
+  img: (p: ComponentProps<"img">) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      loading="lazy"
+      {...p}
+      alt={p.alt ?? ""}
+      className="my-6 h-auto max-w-full rounded-md border border-border"
+    />
   ),
 };

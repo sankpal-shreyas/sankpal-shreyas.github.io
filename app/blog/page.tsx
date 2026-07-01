@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Rss } from "lucide-react";
 import { getAllPosts } from "@/lib/mdx";
-import { BlogList } from "@/components/blog/BlogList";
+import { BlogExplorer } from "@/components/blog/BlogExplorer";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 
 export const metadata: Metadata = {
@@ -9,11 +9,18 @@ export const metadata: Metadata = {
   description: "Security writeups, tooling notes, and ML side-quests.",
 };
 
+// A post counts as "new" if published within this many days of the build.
+const NEW_WINDOW_DAYS = 30;
+
 export default function BlogIndexPage() {
-  const posts = getAllPosts();
+  const now = Date.now();
+  const posts = getAllPosts().map((p) => ({
+    ...p,
+    isNew: now - Date.parse(p.date) < NEW_WINDOW_DAYS * 86_400_000,
+  }));
 
   return (
-    <div className="mx-auto max-w-4xl px-6 pt-32 pb-24">
+    <div className="mx-auto max-w-5xl px-6 pt-32 pb-24">
       <header className="mb-12 border-b border-border pb-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.4em] text-primary glow-text">
           ./blog
@@ -41,7 +48,7 @@ export default function BlogIndexPage() {
         </div>
       </header>
 
-      <BlogList posts={posts} />
+      <BlogExplorer posts={posts} />
     </div>
   );
 }

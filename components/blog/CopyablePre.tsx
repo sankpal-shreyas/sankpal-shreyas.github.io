@@ -25,7 +25,10 @@ export function CopyablePre(props: ComponentProps<"pre">) {
     <div className="group relative my-6">
       <pre
         ref={ref}
-        className="overflow-x-auto rounded-md border border-border bg-bg-panel p-4 font-mono text-[13px] leading-6 text-text"
+        tabIndex={0}
+        role="region"
+        aria-label="code block"
+        className="overflow-x-auto rounded-md border border-border bg-bg-panel p-4 font-mono text-[13px] leading-6 text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
         {...props}
       />
       <button
