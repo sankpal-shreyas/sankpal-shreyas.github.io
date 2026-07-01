@@ -18,23 +18,24 @@ async function walk(dir, acc = []) {
 }
 
 async function main() {
-  const src = path.join(outDir, "opengraph-image");
-  const dst = path.join(outDir, "opengraph-image.png");
-
-  try {
-    await fs.access(src);
-  } catch {
-    console.warn("[postbuild] no /opengraph-image to rename — skipping");
-    return;
-  }
-
-  await fs.rename(src, dst);
-  console.log("[postbuild] renamed opengraph-image → opengraph-image.png");
-
   const files = await walk(outDir);
+
+  // Next emits every generated OG image (the root one plus one per blog post) as
+  // an extensionless file. GitHub Pages serves those as octet-stream, which
+  // breaks social crawlers — rename each to .png.
+  let renamed = 0;
+  for (const file of files) {
+    if (path.basename(file) === "opengraph-image") {
+      await fs.rename(file, `${file}.png`);
+      renamed++;
+    }
+  }
+  console.log(`[postbuild] renamed ${renamed} opengraph-image file(s) → .png`);
+
+  // Repoint HTML/txt references (og:image / twitter:image) to the .png. Paths of
+  // these files are unchanged by the rename above, so the collected list is fine.
   const rewriteExts = new Set([".html", ".txt"]);
   let patched = 0;
-
   for (const file of files) {
     if (!rewriteExts.has(path.extname(file))) continue;
     const content = await fs.readFile(file, "utf8");

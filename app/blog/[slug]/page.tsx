@@ -9,10 +9,12 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft, Rss } from "lucide-react";
 import { getAllPostSlugs, getHeadings, getPost } from "@/lib/mdx";
+import { site } from "@/lib/config";
 import { mdxComponents } from "@/components/blog/mdxComponents";
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ReadAloud } from "@/components/blog/ReadAloud";
+import { CopyLinkButton } from "@/components/blog/CopyLinkButton";
 import { ReadingTheme } from "@/components/blog/ReadingTheme";
 import { SubscribeForm } from "@/components/blog/SubscribeForm";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
@@ -40,9 +42,23 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
+  const url = `${site.baseUrl.replace(/\/$/, "")}/blog/${slug}/`;
   return {
     title: post.title,
     description: post.description,
+    openGraph: {
+      type: "article",
+      siteName: site.name,
+      title: post.title,
+      description: post.description,
+      url,
+      publishedTime: post.date,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+    },
   };
 }
 
@@ -70,7 +86,10 @@ export default async function PostPage({
             <ArrowLeft className="size-3.5" aria-hidden />
             back to log
           </Link>
-          <ReadingTheme />
+          <div className="flex items-center gap-2">
+            <CopyLinkButton />
+            <ReadingTheme />
+          </div>
         </div>
 
         <header className="mb-10 border-b border-border pb-6">
